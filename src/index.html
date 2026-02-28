@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sổ Tay Phím Tắt Lập Trình Viên</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="logo">DevShortcuts</div>
+      <p class="subtitle">Tra cứu phím tắt nhanh cho lập trình viên</p>
+    </div>
+    <button class="help-btn" id="helpBtn" title="Trợ giúp">?</button>
+  </header>
+
+  <main>
+    <section class="search-bar">
+      <input type="text" id="searchInput" placeholder="Tìm kiếm phím tắt... (VD: copy, terminal, debug)" />
+      <select id="softwareFilter">
+        <option value="">Tất cả phần mềm</option>
+      </select>
+      <select id="osFilter">
+        <option value="">Tất cả hệ điều hành</option>
+      </select>
+    </section>
+
+    <section class="results">
+      <div class="results-meta" id="resultsMeta"></div>
+      <div id="shortcutGrid" class="shortcut-grid"></div>
+      <div id="noResult" class="no-result hidden">
+        <span>😕</span>
+        <p>Không tìm thấy phím tắt nào phù hợp.</p>
+        <button id="btnAddFromNoResult">+ Thêm phím tắt của bạn</button>
+      </div>
+    </section>
+
+    <button class="fab" id="fabAdd" title="Thêm phím tắt mới">＋</button>
+  </main>
+
+  <!-- Modal thêm phím tắt -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal">
+      <h2>Thêm Phím Tắt Mới</h2>
+      <form id="addForm">
+        <label>Phần mềm <span class="required">*</span>
+          <input type="text" id="fSoftware" placeholder="VD: VS Code, Terminal..." required />
+        </label>
+        <label>Chức năng <span class="required">*</span>
+          <input type="text" id="fAction" placeholder="VD: Mở terminal tích hợp" required />
+        </label>
+        <label>Tổ hợp phím <span class="required">*</span>
+          <input type="text" id="fKeys" placeholder="VD: Ctrl + \` " required />
+        </label>
+        <label>Hệ điều hành
+          <select id="fOs">
+            <option value="Windows/Linux">Windows/Linux</option>
+            <option value="macOS">macOS</option>
+            <option value="Tất cả">Tất cả</option>
+          </select>
+        </label>
+        <div id="formError" class="form-error hidden"></div>
+        <div class="modal-actions">
+          <button type="button" id="btnCancel">Hủy</button>
+          <button type="submit">Lưu phím tắt</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal trợ giúp -->
+  <div class="modal-overlay hidden" id="helpOverlay">
+    <div class="modal help-modal">
+      <div class="help-header">
+        <h2>Hướng dẫn sử dụng</h2>
+        <button class="close-btn" id="helpClose">✕</button>
+      </div>
+
+      <div class="help-section">
+        <div>
+          <h3>Tìm kiếm phím tắt</h3>
+          <p>Nhập từ khóa vào ô tìm kiếm để tìm theo <strong>tên chức năng</strong>, <strong>tổ hợp phím</strong> hoặc <strong>tên phần mềm</strong>.</p>
+          <div class="help-example">VD: gõ "copy", "Ctrl", "debug"...</div>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div>
+          <h3>Lọc theo phần mềm / hệ điều hành</h3>
+          <p>Dùng 2 dropdown bên phải thanh tìm kiếm để thu hẹp kết quả theo <strong>phần mềm</strong> cụ thể hoặc <strong>hệ điều hành</strong> (Windows, macOS...).</p>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div>
+          <h3>Thêm phím tắt tùy chỉnh</h3>
+          <p>Nhấn nút <strong>＋</strong> ở góc dưới phải để thêm phím tắt của riêng bạn. Phím tắt tùy chỉnh được lưu trên trình duyệt và hiển thị nhãn <em>✦ Tùy chỉnh</em>.</p>
+          <div class="help-note">Phím tắt trùng lặp (cùng phần mềm + cùng tổ hợp phím) sẽ không được thêm.</div>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div>
+          <h3>Lưu trữ dữ liệu</h3>
+          <p>50 phím tắt mặc định được tải từ file <code>data.json</code>. Phím tắt tùy chỉnh lưu vào <code>localStorage</code> của trình duyệt — dữ liệu vẫn còn sau khi tắt tab.</p>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div>
+          <h3>Phần mềm được hỗ trợ</h3>
+          <div class="help-tags">
+            <span class="htag">VS Code</span>
+            <span class="htag">Terminal</span>
+            <span class="htag">IntelliJ IDEA</span>
+            <span class="htag">Git (CLI)</span>
+            <span class="htag">Chrome DevTools</span>
+            <span class="htag">Vim</span>
+            <span class="htag">+ Tùy chỉnh</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
