@@ -439,4 +439,37 @@ header {
   font-size: 0.8rem;
   font-weight: 500;
 }
+/* ===== Delete Button (Card) ===== */
+.delete-btn {
+  position: absolute;
+  bottom: 14px;
+  right: 16px;
+  background: rgba(244,67,54,0.12);
+  border: 1px solid rgba(244,67,54,0.35);
+  color: #ef9a9a;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
 
+.delete-btn:hover {
+  background: rgba(244,67,54,0.25);
+  transform: scale(1.05);
+}
+
+/* ===== Highlight Search ===== */
+mark {
+  background: rgba(108,99,255,0.25);
+  color: #ffffff;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* ===== Sort Dropdown (nếu muốn nổi nhẹ hơn) ===== */
+#sortFilter {
+  min-width: 170px;
+}

@@ -18,17 +18,27 @@
   <main>
     <section class="search-bar">
       <input type="text" id="searchInput" placeholder="Tìm kiếm phím tắt... (VD: copy, terminal, debug)" />
+
       <select id="softwareFilter">
         <option value="">Tất cả phần mềm</option>
       </select>
+
       <select id="osFilter">
         <option value="">Tất cả hệ điều hành</option>
+      </select>
+
+      <!-- 🔥 THÊM SORT TẠI ĐÂY -->
+      <select id="sortFilter">
+        <option value="">Sắp xếp</option>
+        <option value="software">Theo phần mềm (A-Z)</option>
+        <option value="action">Theo chức năng (A-Z)</option>
       </select>
     </section>
 
     <section class="results">
       <div class="results-meta" id="resultsMeta"></div>
       <div id="shortcutGrid" class="shortcut-grid"></div>
+
       <div id="noResult" class="no-result hidden">
         <span>😕</span>
         <p>Không tìm thấy phím tắt nào phù hợp.</p>
@@ -47,12 +57,15 @@
         <label>Phần mềm <span class="required">*</span>
           <input type="text" id="fSoftware" placeholder="VD: VS Code, Terminal..." required />
         </label>
+
         <label>Chức năng <span class="required">*</span>
           <input type="text" id="fAction" placeholder="VD: Mở terminal tích hợp" required />
         </label>
+
         <label>Tổ hợp phím <span class="required">*</span>
-          <input type="text" id="fKeys" placeholder="VD: Ctrl + \` " required />
+          <input type="text" id="fKeys" placeholder="VD: Ctrl + ` " required />
         </label>
+
         <label>Hệ điều hành
           <select id="fOs">
             <option value="Windows/Linux">Windows/Linux</option>
@@ -60,7 +73,9 @@
             <option value="Tất cả">Tất cả</option>
           </select>
         </label>
+
         <div id="formError" class="form-error hidden"></div>
+
         <div class="modal-actions">
           <button type="button" id="btnCancel">Hủy</button>
           <button type="submit">Lưu phím tắt</button>
@@ -88,7 +103,14 @@
       <div class="help-section">
         <div>
           <h3>Lọc theo phần mềm / hệ điều hành</h3>
-          <p>Dùng 2 dropdown bên phải thanh tìm kiếm để thu hẹp kết quả theo <strong>phần mềm</strong> cụ thể hoặc <strong>hệ điều hành</strong> (Windows, macOS...).</p>
+          <p>Dùng 2 dropdown bên phải thanh tìm kiếm để thu hẹp kết quả theo <strong>phần mềm</strong> cụ thể hoặc <strong>hệ điều hành</strong>.</p>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <div>
+          <h3>Sắp xếp kết quả</h3>
+          <p>Dùng dropdown <strong>Sắp xếp</strong> để hiển thị theo thứ tự A-Z theo <strong>phần mềm</strong> hoặc <strong>chức năng</strong>.</p>
         </div>
       </div>
 
@@ -103,7 +125,7 @@
       <div class="help-section">
         <div>
           <h3>Lưu trữ dữ liệu</h3>
-          <p>50 phím tắt mặc định được tải từ file <code>data.json</code>. Phím tắt tùy chỉnh lưu vào <code>localStorage</code> của trình duyệt — dữ liệu vẫn còn sau khi tắt tab.</p>
+          <p>Phím tắt mặc định được tải từ file <code>data.json</code>. Phím tắt tùy chỉnh lưu vào <code>localStorage</code>.</p>
         </div>
       </div>
 
