@@ -159,35 +159,35 @@
       "software": "Git (CLI)",
       "action": "Xem trạng thái repo",
       "keys": "git status",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 24,
       "software": "Git (CLI)",
       "action": "Stage tất cả thay đổi",
       "keys": "git add .",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 25,
       "software": "Git (CLI)",
       "action": "Commit với message",
       "keys": "git commit -m",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 26,
       "software": "Git (CLI)",
       "action": "Xem lịch sử commit",
       "keys": "git log --oneline",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 27,
       "software": "Git (CLI)",
       "action": "Tạo và chuyển branch mới",
       "keys": "git checkout -b",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 28,
@@ -229,42 +229,42 @@
       "software": "Vim",
       "action": "Chuyển sang chế độ Insert",
       "keys": "i",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 34,
       "software": "Vim",
       "action": "Thoát chế độ Insert",
       "keys": "Esc",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 35,
       "software": "Vim",
       "action": "Lưu file",
       "keys": ":w",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 36,
       "software": "Vim",
       "action": "Thoát Vim",
       "keys": ":q",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 37,
       "software": "Vim",
       "action": "Lưu và thoát",
       "keys": ":wq",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 38,
       "software": "Vim",
       "action": "Tìm kiếm trong file",
       "keys": "/từ_khóa",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 39,
@@ -285,7 +285,7 @@
       "software": "Terminal",
       "action": "Chạy lệnh trước trong lịch sử",
       "keys": "↑ (mũi tên lên)",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 42,
@@ -299,14 +299,14 @@
       "software": "Git (CLI)",
       "action": "Pull code từ remote",
       "keys": "git pull origin",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 44,
       "software": "Git (CLI)",
       "action": "Push code lên remote",
       "keys": "git push origin",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     },
     {
       "id": 45,
@@ -348,7 +348,7 @@
       "software": "Vim",
       "action": "Xóa toàn bộ dòng",
       "keys": "dd",
-      "os": "Tất cả"
+      "os": "Windows/Linux/macOS"
     }
   ]
 }
