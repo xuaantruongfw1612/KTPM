@@ -473,3 +473,85 @@ mark {
 #sortFilter {
   min-width: 170px;
 }
+
+/* ===== Edit FAB (Nút bút đen) ===== */
+.fab-edit {
+  bottom: 100px; 
+ 
+}
+
+/* ===== Card Checkbox (Ô tròn chọn) ===== */
+.card-checkbox {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  z-index: 10;
+  display: none; /* Ẩn theo mặc định */
+  transition: all 0.2s;
+}
+/* Khi bật chế độ edit thì hiện ô tròn và dịch nội dung sang phải */
+.card.edit-mode .card-checkbox {
+  display: block;
+}
+.card.edit-mode {
+  padding-left: 48px; 
+}
+.card-checkbox.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.card-checkbox.selected::after {
+  content: '✓';
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.card.edit-mode.selected-card {
+  border-color: var(--accent);
+  background: rgba(108, 99, 255, 0.05);
+}
+
+/* ===== Edit Action Bar (Thanh Update/Delete) ===== */
+.edit-action-bar {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  padding: 12px 24px;
+  border-radius: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 300;
+}
+.edit-action-bar #selectedCount {
+  font-weight: bold;
+  color: var(--text);
+}
+.edit-action-bar .actions {
+  display: flex;
+  gap: 10px;
+}
+.edit-action-bar button {
+  padding: 8px 16px; 
+  border-radius: 20px; 
+  border: none; 
+  cursor: pointer; 
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.btn-update { background: var(--success); color: white; }
+.btn-delete { background: var(--error); color: white; }
+.btn-cancel { background: var(--surface2); color: var(--text); }

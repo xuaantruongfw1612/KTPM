@@ -1,57 +1,111 @@
 const DATA_URL = "data.json";
 const CUSTOM_KEY = "devshortcuts_custom";
+const DELETED_KEY = "devshortcuts_deleted";
 
 let allShortcuts = [];
+let isEditMode = false;
+let selectedIds = [];
+let editingShortcutId = null;
+
+/* ================= UTILS (Quản lý LocalStorage) ================= */
+function getLocal(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || []; }
+  catch { return []; }
+}
+function setLocal(key, data) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
 
 /* ================= LOAD DATA ================= */
 async function loadData() {
   const res = await fetch(DATA_URL);
   const json = await res.json();
-  allShortcuts = json.shortcuts;
+  
+  const deletedIds = getLocal(DELETED_KEY).map(String);
+  const customItems = getLocal(CUSTOM_KEY);
+  const customIds = customItems.map(c => String(c.id));
+  
+  // 1. Gắn ID chuỗi cho dữ liệu gốc để tránh lỗi kiểu dữ liệu
+  let defaults = json.shortcuts.map((s, idx) => ({
+    ...s,
+    id: String(s.id || `default_${idx}`) 
+  }));
 
-  const custom = getCustomShortcuts();
-  allShortcuts = [...allShortcuts, ...custom];
+  // 2. Lọc bỏ vĩnh viễn những phím tắt nằm trong sổ đen (Đã xóa)
+  defaults = defaults.filter(s => !deletedIds.includes(s.id));
+  
+  // 3. Lọc bỏ những phím gốc đã bị Cập nhật (để nhường chỗ cho bản custom tải lên)
+  defaults = defaults.filter(s => !customIds.includes(s.id));
+
+  // 4. Gộp lại
+  allShortcuts = [...defaults, ...customItems];
 
   populateFilters();
-  renderCards(allShortcuts);
+  filterAndRender();
 }
 
-function getCustomShortcuts() {
-  try {
-    return JSON.parse(localStorage.getItem(CUSTOM_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-
-function saveCustomShortcut(sc) {
-  const custom = getCustomShortcuts();
-
-  const isDuplicate = allShortcuts.some(
-    s =>
-      s.software.trim().toLowerCase() === sc.software.trim().toLowerCase() &&
-      s.keys.trim().toLowerCase() === sc.keys.trim().toLowerCase()
+/* ================= HÀM XỬ LÝ LƯU (Add/Update) ================= */
+function saveShortcut(data) {
+  const custom = getLocal(CUSTOM_KEY);
+  
+  // Kiểm tra trùng lặp
+  const isDup = allShortcuts.some(s => 
+    s.software.trim().toLowerCase() === data.software.trim().toLowerCase() &&
+    s.keys.trim().toLowerCase() === data.keys.trim().toLowerCase() &&
+    String(s.id) !== String(editingShortcutId) // Bỏ qua chính nó nếu đang update
   );
 
-  if (isDuplicate)
-    return { error: "Phím tắt này đã tồn tại trong danh sách!" };
+  if (isDup) return { error: "Phím tắt này đã tồn tại trong danh sách!" };
 
-  sc.id = Date.now();
-  sc.isCustom = true;
+  const newObj = { ...data, isCustom: true };
+  
+  if (editingShortcutId) {
+    // ĐANG UPDATE
+    newObj.id = String(editingShortcutId);
+    
+    // Lưu vào Custom (Ghi đè hoặc thêm mới vào mảng Custom)
+    const customIdx = custom.findIndex(c => String(c.id) === newObj.id);
+    if (customIdx !== -1) custom[customIdx] = newObj;
+    else custom.push(newObj);
+    
+    // Cập nhật lên RAM hiển thị
+    const ramIdx = allShortcuts.findIndex(s => String(s.id) === newObj.id);
+    if (ramIdx !== -1) allShortcuts[ramIdx] = newObj;
+  } else {
+    // ĐANG THÊM MỚI
+    newObj.id = `custom_${Date.now()}`;
+    custom.push(newObj);
+    allShortcuts.push(newObj);
+  }
 
-  custom.push(sc);
-  localStorage.setItem(CUSTOM_KEY, JSON.stringify(custom));
-
-  return { success: true, data: sc };
+  setLocal(CUSTOM_KEY, custom);
+  return { success: true };
 }
 
-function deleteCustomShortcut(id) {
-  let custom = getCustomShortcuts();
-  custom = custom.filter(s => s.id != id);
-  localStorage.setItem(CUSTOM_KEY, JSON.stringify(custom));
+/* ================= HÀM XỬ LÝ XÓA (Xóa 1 hoặc nhiều) ================= */
+function deleteShortcuts(idsArray) {
+  const custom = getLocal(CUSTOM_KEY);
+  const deleted = getLocal(DELETED_KEY);
 
-  allShortcuts = allShortcuts.filter(s => s.id != id);
+  idsArray.forEach(id => {
+    const strId = String(id);
+    
+    // 1. Xóa khỏi mảng Custom (nếu nó ở đó)
+    const customIdx = custom.findIndex(c => String(c.id) === strId);
+    if (customIdx !== -1) custom.splice(customIdx, 1);
+    
+    // 2. Thêm vào sổ đen (Bắt buộc với mọi ID để chặn hồi sinh khi F5)
+    if (!deleted.includes(strId)) deleted.push(strId);
+    
+    // 3. Xóa khỏi RAM hiển thị
+    allShortcuts = allShortcuts.filter(s => String(s.id) !== strId);
+  });
+
+  setLocal(CUSTOM_KEY, custom);
+  setLocal(DELETED_KEY, deleted);
+  
   filterAndRender();
+  populateFilters();
 }
 
 /* ================= FILTERS ================= */
@@ -107,33 +161,21 @@ function renderCards(list) {
 
   list.forEach(sc => {
     const card = document.createElement("div");
-    card.className = "card";
+    
+    const isSelected = selectedIds.includes(String(sc.id));
+    card.className = `card ${isEditMode ? "edit-mode" : ""} ${isSelected ? "selected-card" : ""}`;
+    card.dataset.id = sc.id;
 
     const keyParts = sc.keys.split(/\s*\+\s*/);
     const keyHTML = keyParts
-      .map(
-        (k, i) =>
-          `<span class="key-badge">${highlight(
-            k.trim(),
-            query
-          )}</span>${
-            i < keyParts.length - 1
-              ? '<span class="key-plus">+</span>'
-              : ""
-          }`
-      )
+      .map((k, i) => `<span class="key-badge">${highlight(k.trim(), query)}</span>${i < keyParts.length - 1 ? '<span class="key-plus">+</span>' : ""}`)
       .join("");
 
     card.innerHTML = `
+      <div class="card-checkbox ${isSelected ? "selected" : ""}" data-id="${sc.id}"></div>
       ${sc.isCustom ? '<span class="card-custom-badge">✦ Tùy chỉnh</span>' : ""}
-      ${
-        sc.isCustom
-          ? `<button class="delete-btn" data-id="${sc.id}">✕</button>`
-          : ""
-      }
-      <span class="card-software ${
-        sc.isCustom ? "custom-tag" : ""
-      }">${highlight(sc.software, query)}</span>
+      ${sc.isCustom && !isEditMode ? `<button class="delete-btn" data-id="${sc.id}">✕</button>` : ""}
+      <span class="card-software ${sc.isCustom ? "custom-tag" : ""}">${highlight(sc.software, query)}</span>
       <div class="card-action">${highlight(sc.action, query)}</div>
       <div class="card-keys">${keyHTML}</div>
       <div class="card-os">🖥 ${sc.os}</div>
@@ -145,10 +187,7 @@ function renderCards(list) {
 
 /* ================= FILTER + SORT ================= */
 function filterAndRender() {
-  const query = document
-    .getElementById("searchInput")
-    .value.trim()
-    .toLowerCase();
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
   const sw = document.getElementById("softwareFilter").value;
   const os = document.getElementById("osFilter").value;
   const sort = document.getElementById("sortFilter")?.value;
@@ -168,48 +207,35 @@ function filterAndRender() {
   if (os) result = result.filter(s => s.os === os);
 
   if (sort === "software") {
-    result = [...result].sort((a, b) =>
-      a.software.localeCompare(b.software)
-    );
+    result = [...result].sort((a, b) => a.software.localeCompare(b.software));
   }
 
   if (sort === "action") {
-    result = [...result].sort((a, b) =>
-      a.action.localeCompare(b.action)
-    );
+    result = [...result].sort((a, b) => a.action.localeCompare(b.action));
   }
 
   renderCards(result);
 }
 
-/* ================= EVENTS ================= */
-
-// Search debounce
+/* ================= EVENTS (Search & Filters) ================= */
 let debounceTimer;
 document.getElementById("searchInput").addEventListener("input", () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(filterAndRender, 200);
 });
 
-// Filters
-document
-  .getElementById("softwareFilter")
-  .addEventListener("change", filterAndRender);
-document
-  .getElementById("osFilter")
-  .addEventListener("change", filterAndRender);
-document
-  .getElementById("sortFilter")
-  ?.addEventListener("change", filterAndRender);
+document.getElementById("softwareFilter").addEventListener("change", filterAndRender);
+document.getElementById("osFilter").addEventListener("change", filterAndRender);
+document.getElementById("sortFilter")?.addEventListener("change", filterAndRender);
 
-// Delete button
+// Bấm nút xóa (Dấu X trên Card)
 document.addEventListener("click", e => {
   if (e.target.classList.contains("delete-btn")) {
-    deleteCustomShortcut(e.target.dataset.id);
+    deleteShortcuts([e.target.dataset.id]);
   }
 });
 
-/* ================= MODAL ADD ================= */
+/* ================= MODAL ADD/UPDATE ================= */
 function openAddModal() {
   document.getElementById("modalOverlay").classList.remove("hidden");
   document.getElementById("fSoftware").focus();
@@ -219,21 +245,27 @@ function closeAddModal() {
   document.getElementById("modalOverlay").classList.add("hidden");
   document.getElementById("addForm").reset();
   document.getElementById("formError").classList.add("hidden");
+  editingShortcutId = null; // Reset id
 }
 
-document.getElementById("fabAdd").addEventListener("click", openAddModal);
+document.getElementById("fabAdd").addEventListener("click", () => {
+  editingShortcutId = null;
+  document.querySelector("#modalOverlay h2").textContent = "Thêm Phím Tắt Mới";
+  openAddModal();
+});
+
 document.getElementById("btnCancel").addEventListener("click", closeAddModal);
-document
-  .getElementById("btnAddFromNoResult")
-  .addEventListener("click", openAddModal);
+document.getElementById("btnAddFromNoResult").addEventListener("click", () => {
+  editingShortcutId = null;
+  document.querySelector("#modalOverlay h2").textContent = "Thêm Phím Tắt Mới";
+  openAddModal();
+});
 
-document
-  .getElementById("modalOverlay")
-  .addEventListener("click", e => {
-    if (e.target === document.getElementById("modalOverlay"))
-      closeAddModal();
-  });
+document.getElementById("modalOverlay").addEventListener("click", e => {
+  if (e.target === document.getElementById("modalOverlay")) closeAddModal();
+});
 
+// Xử lý Gửi Form (Lưu)
 document.getElementById("addForm").addEventListener("submit", e => {
   e.preventDefault();
 
@@ -244,7 +276,7 @@ document.getElementById("addForm").addEventListener("submit", e => {
     os: document.getElementById("fOs").value
   };
 
-  const result = saveCustomShortcut(sc);
+  const result = saveShortcut(sc);
 
   if (result.error) {
     const err = document.getElementById("formError");
@@ -253,26 +285,106 @@ document.getElementById("addForm").addEventListener("submit", e => {
     return;
   }
 
-  allShortcuts.push(result.data);
+  // Tắt chế độ Edit nếu đang bật
+  if (editingShortcutId) {
+    isEditMode = false;
+    selectedIds = [];
+    updateActionBarVisibility();
+  }
+
   populateFilters();
   filterAndRender();
   closeAddModal();
 });
+
+/* ================= EDIT MODE LOGIC ================= */
+const fabEdit = document.getElementById("fabEdit");
+const editActionBar = document.getElementById("editActionBar");
+const btnCancelEdit = document.getElementById("btnCancelEdit");
+const btnDeleteSelected = document.getElementById("btnDeleteSelected");
+const btnUpdateSelected = document.getElementById("btnUpdateSelected");
+
+function toggleEditMode() {
+  isEditMode = !isEditMode;
+  selectedIds = [];
+  updateActionBarVisibility();
+  filterAndRender(); 
+}
+
+function updateActionBarVisibility() {
+  if (isEditMode) {
+    editActionBar.classList.remove("hidden");
+    document.getElementById("selectedCount").textContent = `Đã chọn ${selectedIds.length}`;
+    
+    btnUpdateSelected.style.display = selectedIds.length === 1 ? "inline-block" : "none";
+    btnDeleteSelected.style.display = selectedIds.length > 0 ? "inline-block" : "none";
+  } else {
+    editActionBar.classList.add("hidden");
+  }
+}
+
+if(fabEdit) fabEdit.addEventListener("click", toggleEditMode);
+if(btnCancelEdit) btnCancelEdit.addEventListener("click", toggleEditMode);
+
+// Click chọn nhiều thẻ
+document.addEventListener("click", e => {
+  if (isEditMode) {
+    const card = e.target.closest(".card");
+    if (card && !e.target.classList.contains("delete-btn")) {
+      const id = String(card.dataset.id);
+      
+      if (selectedIds.includes(id)) {
+        selectedIds = selectedIds.filter(i => i !== id);
+      } else {
+        selectedIds.push(id);
+      }
+      
+      updateActionBarVisibility();
+      filterAndRender();
+    }
+  }
+});
+
+// Nút Xóa Nhiều Thẻ
+if(btnDeleteSelected) {
+  btnDeleteSelected.addEventListener("click", () => {
+    if (confirm(`Bạn có chắc muốn xóa ${selectedIds.length} phím tắt đã chọn?`)) {
+      deleteShortcuts(selectedIds);
+      selectedIds = [];
+      isEditMode = false;
+      updateActionBarVisibility();
+    }
+  });
+}
+
+// Nút Sửa Thẻ Chọn
+if(btnUpdateSelected) {
+  btnUpdateSelected.addEventListener("click", () => {
+    const targetId = selectedIds[0];
+    const sc = allShortcuts.find(s => String(s.id) === targetId);
+    
+    if (sc) {
+      editingShortcutId = targetId;
+      document.getElementById("fSoftware").value = sc.software;
+      document.getElementById("fAction").value = sc.action;
+      document.getElementById("fKeys").value = sc.keys;
+      document.getElementById("fOs").value = sc.os;
+      
+      document.querySelector("#modalOverlay h2").textContent = "Cập nhật Phím Tắt";
+      document.getElementById("modalOverlay").classList.remove("hidden");
+    }
+  });
+}
 
 /* ================= HELP MODAL ================= */
 const helpBtn = document.getElementById("helpBtn");
 const helpOverlay = document.getElementById("helpOverlay");
 const helpClose = document.getElementById("helpClose");
 
-helpBtn.addEventListener("click", () =>
-  helpOverlay.classList.remove("hidden")
-);
-helpClose.addEventListener("click", () =>
-  helpOverlay.classList.add("hidden")
-);
+helpBtn.addEventListener("click", () => helpOverlay.classList.remove("hidden"));
+helpClose.addEventListener("click", () => helpOverlay.classList.add("hidden"));
 helpOverlay.addEventListener("click", e => {
-  if (e.target === helpOverlay)
-    helpOverlay.classList.add("hidden");
+  if (e.target === helpOverlay) helpOverlay.classList.add("hidden");
 });
 
 /* ================= ESC CLOSE ================= */
@@ -280,6 +392,12 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     helpOverlay.classList.add("hidden");
     document.getElementById("modalOverlay").classList.add("hidden");
+    if (isEditMode) {
+      isEditMode = false;
+      selectedIds = [];
+      updateActionBarVisibility();
+      filterAndRender();
+    }
   }
 });
 
