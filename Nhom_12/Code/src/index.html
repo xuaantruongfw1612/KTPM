@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DevShortcuts - Sổ Tay Phím Tắt</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div id="loginPage">
+    <div class="login-card">
+      <div class="login-logo">DevShortcuts</div>
+      <p class="login-subtitle">Sổ Tay Phím Tắt Lập Trình Viên</p>
+      <form id="loginForm" autocomplete="off">
+        <div id="loginError" class="form-error hidden"></div>
+        <label>Tên đăng nhập
+          <input type="text" id="loginUsername" placeholder="Nhập tên đăng nhập" autocomplete="off" spellcheck="false" />
+        </label>
+        <label>Mật khẩu
+          <input type="password" id="loginPassword" placeholder="Nhập mật khẩu" autocomplete="new-password" />
+        </label>
+        <button type="submit" class="btn-login">Đăng nhập</button>
+      </form>
+      <div class="login-hint">
+        <div class="hint-row"><span class="hint-role admin-role">Quản trị</span><span>admin / admin123</span></div>
+        <div class="hint-row"><span class="hint-role user-role">Thành viên</span><span>user / user123</span></div>
+      </div>
+      <p class="register-link">Chưa có tài khoản? <button type="button" id="goRegister">Đăng ký ngay</button></p>
+    </div>
+  </div>
+
+  <div id="registerPage" class="hidden">
+    <div class="login-card">
+      <div class="login-logo">DevShortcuts</div>
+      <p class="login-subtitle">Tạo tài khoản mới</p>
+      <form id="registerForm" autocomplete="off">
+        <div id="registerError"  class="form-error hidden"></div>
+        <div id="registerSuccess" class="form-success hidden"></div>
+        <label>Tên đăng nhập <span class="required">*</span>
+          <input type="text" id="regUsername" placeholder="Chỉ chứa chữ cái và số, không dấu cách" autocomplete="off" spellcheck="false" />
+        </label>
+        <label>Mật khẩu <span class="required">*</span>
+          <input type="password" id="regPassword" placeholder="Tối thiểu 6 ký tự" autocomplete="new-password" />
+        </label>
+        <label>Nhập lại mật khẩu <span class="required">*</span>
+          <input type="password" id="regConfirm" placeholder="Nhập lại mật khẩu" autocomplete="new-password" />
+        </label>
+        <div class="role-notice">Tài khoản mới sẽ được phân quyền: <span class="hint-role user-role" style="font-size:0.8rem">Người dùng</span></div>
+        <button type="submit" class="btn-login">Đăng ký</button>
+      </form>
+      <p class="register-link">Đã có tài khoản? <button type="button" id="goLogin">Đăng nhập</button></p>
+    </div>
+  </div>
+
+  <div id="appPage" class="hidden">
+    <header>
+      <div class="header-inner">
+        <div class="logo">DevShortcuts</div>
+        <p class="subtitle">Tra cứu phím tắt nhanh cho lập trình viên</p>
+      </div>
+      <div class="header-actions">
+        <span id="userBadge" class="user-badge"></span>
+        <button class="help-btn" id="helpBtn" title="Trợ giúp">?</button>
+        <button class="logout-btn" id="logoutBtn">Đăng xuất</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="search-bar">
+        <input type="text" id="searchInput" placeholder="Tìm kiếm phím tắt... (VD: copy, terminal, debug)" />
+        <select id="softwareFilter"><option value="">Tất cả phần mềm</option></select>
+        <select id="osFilter"><option value="">Lọc theo mặc định</option></select>
+        <select id="sortFilter">
+          <option value="">Sắp xếp mặc định</option>
+          <option value="software">A-Z theo phần mềm</option>
+          <option value="action">A-Z theo chức năng</option>
+          <option value="newest">Mới nhất trước</option>
+          <option value="oldest">Cũ nhất trước</option>
+        </select>
+        <select id="statusFilter" class="hidden">
+          <option value="all">Tất cả trạng thái</option>
+          <option value="pending">Chờ duyệt</option>
+          <option value="approved">Đã duyệt</option>
+        </select>
+      </section>
+
+      <section class="results">
+        <div class="results-meta" id="resultsMeta"></div>
+        <div id="shortcutGrid" class="shortcut-grid"></div>
+        <div id="noResult" class="no-result hidden">
+          <span>&#128533;</span>
+          <p>Không tìm thấy phím tắt nào phù hợp.</p>
+          <button id="btnAddFromNoResult">+ Thêm phím tắt của bạn</button>
+        </div>
+      </section>
+
+      <button class="fab" id="fabAdd" title="Thêm phím tắt mới">&#xff0b;</button>
+      <button class="fab fab-edit hidden" id="fabEdit" title="Chế độ chỉnh sửa">&#9998;</button>
+    </main>
+
+    <div class="edit-action-bar hidden" id="editActionBar">
+      <span id="selectedCount">0 đã chọn</span>
+      <div class="actions">
+        <button class="btn-update" id="btnUpdateSelected">Sửa</button>
+        <button class="btn-delete" id="btnDeleteSelected">Xóa</button>
+        <button class="btn-cancel" id="btnCancelEdit">Hủy</button>
+      </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="modalOverlay">
+      <div class="modal">
+        <h2 id="modalTitle">Thêm Phím Tắt Mới</h2>
+        <form id="addForm">
+          <label>Phần mềm <span class="required">*</span>
+            <input type="text" id="fSoftware" placeholder="VD: VS Code, Terminal..." required />
+          </label>
+          <label>Chức năng <span class="required">*</span>
+            <input type="text" id="fAction" placeholder="VD: Mở terminal tích hợp" required />
+          </label>
+          <label>Tổ hợp phím <span class="required">*</span>
+            <input type="text" id="fKeys" placeholder="VD: Ctrl + P" required />
+          </label>
+          <label>Hệ điều hành
+            <select id="fOs">
+              <option value="Windows/Linux">Windows/Linux</option>
+              <option value="macOS">macOS</option>
+              <option value="Windows/Linux/macOS">Windows/Linux/macOS</option>
+            </select>
+          </label>
+          <div id="formError" class="form-error hidden"></div>
+          <div class="modal-actions">
+            <button type="button" id="btnCancel">Hủy</button>
+            <button type="submit" id="btnSubmit">Lưu phím tắt</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="helpOverlay">
+      <div class="modal help-modal">
+        <div class="help-header">
+          <h2>Hướng dẫn sử dụng</h2>
+          <button class="close-btn" id="helpClose">&#10005;</button>
+        </div>
+        <div class="help-section">
+          <div>
+            <h3>Tìm kiếm phím tắt</h3>
+            <p>Nhập từ khóa để tìm theo <strong>tên chức năng</strong>, <strong>tổ hợp phím</strong> hoặc <strong>tên phần mềm</strong>.</p>
+            <div class="help-example">VD: gõ "copy", "Ctrl", "debug"...</div>
+          </div>
+        </div>
+        <div class="help-section">
+          <div>
+            <h3>Lọc và sắp xếp</h3>
+            <p>Dùng danh sách chọn để lọc theo <strong>phần mềm</strong>, <strong>hệ điều hành</strong> và sắp xếp A-Z.</p>
+          </div>
+        </div>
+        <div class="help-section">
+          <div>
+            <h3>Thêm phím tắt tùy chỉnh</h3>
+            <p>Nhấn nút <strong>+</strong> góc dưới phải. Phím tắt tùy chỉnh được lưu vào <code>localStorage</code>.</p>
+            <div class="help-note">Lưu ý: Phím tắt trùng lặp sẽ không được thêm.</div>
+          </div>
+        </div>
+        <div class="help-section admin-only-help hidden" id="adminHelpSection">
+          <div>
+            <h3>Chế độ chỉnh sửa (Dành cho Quản trị)</h3>
+            <p>Nhấn biểu tượng cây bút <strong>&#9998;</strong> để bật chế độ quản lý. Chọn các thẻ phím tắt rồi nhấn <strong>Sửa</strong> hoặc <strong>Xóa</strong>.</p>
+          </div>
+        </div>
+        <div class="help-shortcut-tip">
+          <span>Mẹo:</span> Nhấn <kbd>Esc</kbd> hoặc nhấn ra ngoài vùng hộp thoại để đóng.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/globals.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
